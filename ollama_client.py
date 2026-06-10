@@ -27,7 +27,7 @@ def _generate(prompt: str, model: str) -> Optional[str]:
     try:
         r = requests.post(
             f"{OLLAMA_BASE_URL}/api/generate",
-            json={"model": model, "prompt": prompt, "stream": False},
+            json={"model": model, "prompt": prompt, "stream": False, "think": False},
             timeout=TIMEOUT_GENERATE,
         )
         r.raise_for_status()
