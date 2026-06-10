@@ -48,21 +48,18 @@ class KnowledgePingApp:
                     self._handle_ping()
 
                 elif task == "show_lesson":
-                    popup, topic, content = data
-                    if popup.alive:
-                        popup.show_lesson(content)
+                    topic, content = data
+                    new_ping_popup(self.root, topic, "lesson", content=content)
                     log_session(topic, "lesson", content)
 
                 elif task == "show_quiz":
-                    popup, topic, question, answer = data
-                    if popup.alive:
-                        popup.show_quiz(question, answer)
+                    topic, question, answer = data
+                    new_ping_popup(self.root, topic, "quiz", question=question, answer=answer)
                     log_session(topic, "quiz", f"Q: {question}\nA: {answer}")
 
                 elif task == "show_error":
-                    popup, msg = data
-                    if popup.alive:
-                        popup.show_error(msg)
+                    topic, mode, msg = data
+                    new_ping_popup(self.root, topic, mode, error=msg)
 
                 elif task == "settings":
                     open_settings(self.root, on_save=self._on_settings_saved)
@@ -95,14 +92,13 @@ class KnowledgePingApp:
         mode  = random.choice(["lesson", "quiz"])
         model = get_setting("model", "qwen3.5:0.8b")
 
-        popup = new_ping_popup(self.root, topic, mode)
-
         self.scheduler.reset_timer()
 
         def _fetch():
+            # Generate first; the popup is created only once we have content.
             if not is_available():
                 self._queue.put(("show_error", (
-                    popup,
+                    topic, mode,
                     "⚠️  Ollama is not running.\n\n"
                     "Start it with:\n    ollama serve\n\n"
                     f"Then pull a model:\n    ollama pull {model}"
@@ -113,15 +109,15 @@ class KnowledgePingApp:
                 result = generate_quiz(topic, model)
                 if result:
                     q, a = result
-                    self._queue.put(("show_quiz", (popup, topic, q, a)))
+                    self._queue.put(("show_quiz", (topic, q, a)))
                     return
 
             content = generate_lesson(topic, model)
             if content:
-                self._queue.put(("show_lesson", (popup, topic, content)))
+                self._queue.put(("show_lesson", (topic, content)))
             else:
                 self._queue.put(("show_error", (
-                    popup,
+                    topic, mode,
                     f"⚠️  Model '{model}' did not respond.\n\n"
                     "Check that the model is available:\n"
                     f"    ollama pull {model}"

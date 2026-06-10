@@ -68,15 +68,35 @@ def _center(win, w, h):
 
 
 class PingPopup:
-    def __init__(self, root: tk.Tk, topic: str, mode: str):
+    def __init__(
+        self,
+        root: tk.Tk,
+        topic: str,
+        mode: str,
+        content:  Optional[str] = None,
+        question: Optional[str] = None,
+        answer:   Optional[str] = None,
+        error:    Optional[str] = None,
+    ):
         self.root   = root
         self.topic  = topic
         self.mode   = mode       # 'lesson' | 'quiz'
-        self._answer = ""
+        self._answer = answer or ""
         self._answer_shown = False
 
         self._build()
-        self._set_loading()
+
+        # Decide initial state.  Generate-first flow: we only ever construct
+        # the popup once we have the content ready, so the loading state is
+        # never shown in the normal path.
+        if error is not None:
+            self.show_error(error)
+        elif mode == "lesson" and content is not None:
+            self.show_lesson(content)
+        elif mode == "quiz" and question is not None and answer is not None:
+            self.show_quiz(question, answer)
+        else:
+            self._set_loading()
 
 
     def _build(self):
@@ -193,13 +213,9 @@ class PingPopup:
             return
         self._answer_shown = True
         self.answer_lbl.config(text=self._answer)
-        self.answer_outer.pack(
-            fill="x", 
-            before=self.win.nametowidget(
-                self.win.pack_slaves()[-1].winfo_name()
-            ) if False else None
-        )
-        self.answer_outer.pack(fill="x", padx=0, pady=(0, 4))
+        # Make sure the answer panel sits *above* the button row.
+        self.answer_outer.pack(fill="x", padx=0, pady=(0, 4),
+                               before=self.primary_btn.master)
         self.primary_btn.config(text="Got it ✓", command=self._close)
 
 
@@ -519,5 +535,16 @@ def open_history(root: tk.Tk) -> None:
     HistoryWindow(root)
 
 
-def new_ping_popup(root: tk.Tk, topic: str, mode: str) -> PingPopup:
-    return PingPopup(root, topic, mode)
+def new_ping_popup(
+    root: tk.Tk,
+    topic: str,
+    mode: str,
+    content:  Optional[str] = None,
+    question: Optional[str] = None,
+    answer:   Optional[str] = None,
+    error:    Optional[str] = None,
+) -> PingPopup:
+    return PingPopup(
+        root, topic, mode,
+        content=content, question=question, answer=answer, error=error,
+    )
