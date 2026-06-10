@@ -95,7 +95,6 @@ class KnowledgePingApp:
         self.scheduler.reset_timer()
 
         def _fetch():
-            # Generate first; the popup is created only once we have content.
             if not is_available():
                 self._queue.put(("show_error", (
                     topic, mode,
@@ -111,6 +110,13 @@ class KnowledgePingApp:
                     q, a = result
                     self._queue.put(("show_quiz", (topic, q, a)))
                     return
+                self._queue.put(("show_error", (
+                    topic, mode,
+                    f"⚠️  Could not generate a quiz for '{topic}'.\n\n"
+                    f"Model: {model}\n"
+                    "Try a different model, or run 'Ping Now' again."
+                )))
+                return
 
             content = generate_lesson(topic, model)
             if content:

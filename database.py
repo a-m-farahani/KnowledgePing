@@ -32,7 +32,7 @@ def init_db() -> None:
 
     defaults = {
         "model":            "qwen3.5:0.8b",
-        "interval_minutes": "30",
+        "interval_minutes": "15",
         "enabled":          "1",
     }
 
@@ -43,10 +43,23 @@ def init_db() -> None:
         )
 
     seed_topics = [
-        "English Speaking",
-        # "Linux commands",
-        # "Data structures and algorithms",
-        # "Networking fundamentals",
+        "ordering food",
+        "asking a stranger for directions",
+        "checking into a hotel",
+        "making a phone call",
+        "buying a bus ticket",
+        "describing your morning routine",
+        "Introducing yourself (name, where you live, job/study)",
+        "Shopping for clothes (asking for size, color, price)",
+        "At the pharmacy (asking for headache medicine, describing a symptom)",
+        "Ordering a taxi/rideshare (telling your location, destination)",
+        "Complaining about a problem (wrong order, broken item – simple phrases)",
+        "Talking about the weather (too hot/cold, raining, nice day)",
+        "Making weekend plans (suggesting a movie, park, or café)",
+        "At the doctor’s office (saying “my head hurts,” “I feel sick”)",
+        "Asking for help at work/school (Can you show me? I don’t understand.)",
+        "Paying a bill (asking for the check, splitting payment)",
+
     ]
     for t in seed_topics:
         c.execute("INSERT OR IGNORE INTO topics (name) VALUES (?)", (t,))
